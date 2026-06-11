@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
-import { BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useState, useEffect } from 'react';
+import { BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, ScatterChart, Scatter, ComposedChart } from 'recharts';
 import { TrendingUp, Code2, Globe, Zap } from 'lucide-react';
+import { useAuth } from '@/_core/hooks/useAuth';
 
 /**
  * Design System: Vibrant Data Storytelling
@@ -43,6 +44,26 @@ const portfolioData = {
     { name: 'TypeScript', percentage: 65 },
     { name: 'Tailwind CSS', percentage: 78 },
   ],
+  // Project complexity vs deployment time scatter data
+  projectComplexity: [
+    { complexity: 3, deploymentDays: 2, name: 'Landing Page 1', color: '#FF6B35' },
+    { complexity: 5, deploymentDays: 3, name: 'Dashboard 1', color: '#7C3AED' },
+    { complexity: 7, deploymentDays: 5, name: 'Full Stack App 1', color: '#10B981' },
+    { complexity: 4, deploymentDays: 2, name: 'Tool 1', color: '#EC4899' },
+    { complexity: 8, deploymentDays: 7, name: 'Complex App 1', color: '#FF6B35' },
+    { complexity: 2, deploymentDays: 1, name: 'Simple Page', color: '#06B6D4' },
+    { complexity: 6, deploymentDays: 4, name: 'API Integration', color: '#FBBF24' },
+    { complexity: 9, deploymentDays: 8, name: 'Enterprise App', color: '#7C3AED' },
+  ],
+  // Platform activity heatmap data
+  platformActivity: [
+    { month: 'Jan', Vercel: 2, Manus: 1, Render: 1, Lovable: 1, 'GitHub Pages': 0, Framer: 0, Replit: 0 },
+    { month: 'Feb', Vercel: 3, Manus: 1, Render: 1, Lovable: 1, 'GitHub Pages': 1, Framer: 1, Replit: 0 },
+    { month: 'Mar', Vercel: 4, Manus: 2, Render: 1, Lovable: 2, 'GitHub Pages': 1, Framer: 1, Replit: 0 },
+    { month: 'Apr', Vercel: 5, Manus: 2, Render: 2, Lovable: 2, 'GitHub Pages': 2, Framer: 1, Replit: 0 },
+    { month: 'May', Vercel: 6, Manus: 2, Render: 2, Lovable: 2, 'GitHub Pages': 2, Framer: 1, Replit: 1 },
+    { month: 'Jun', Vercel: 6, Manus: 2, Render: 2, Lovable: 2, 'GitHub Pages': 2, Framer: 1, Replit: 1 },
+  ],
 };
 
 // Animated counter component
@@ -72,6 +93,10 @@ function AnimatedCounter({ target, duration = 2000 }: { target: number; duration
 }
 
 export default function Home() {
+  // The userAuth hooks provides authentication state
+  // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
+  let { user, loading, error, isAuthenticated, logout } = useAuth();
+
   const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -216,33 +241,74 @@ export default function Home() {
           </ResponsiveContainer>
         </div>
 
-        {/* Growth Trend - Line Chart */}
+        {/* Growth Trend - Area Chart */}
         <div className="col-span-12 card-dashboard p-6 animate-slide-in" data-observe>
           <h2 className="text-heading mb-4">Project Growth Timeline</h2>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={portfolioData.monthlyGrowth}>
+            <AreaChart data={portfolioData.monthlyGrowth}>
+              <defs>
+                <linearGradient id="colorProjects" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#FF6B35" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#FF6B35" stopOpacity={0.1}/>
+                </linearGradient>
+                <linearGradient id="colorDeployments" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#7C3AED" stopOpacity={0.1}/>
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
               <XAxis dataKey="month" />
               <YAxis />
               <Tooltip />
               <Legend />
-              <Line
+              <Area
                 type="monotone"
                 dataKey="projects"
                 stroke="#FF6B35"
-                strokeWidth={2}
-                dot={{ fill: '#FF6B35', r: 4 }}
-                activeDot={{ r: 6 }}
+                fillOpacity={1}
+                fill="url(#colorProjects)"
               />
-              <Line
+              <Area
                 type="monotone"
                 dataKey="deployments"
                 stroke="#7C3AED"
-                strokeWidth={2}
-                dot={{ fill: '#7C3AED', r: 4 }}
-                activeDot={{ r: 6 }}
+                fillOpacity={1}
+                fill="url(#colorDeployments)"
               />
-            </LineChart>
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Project Complexity vs Deployment Time - Scatter Chart */}
+        <div className="col-span-12 md:col-span-6 card-dashboard p-6 animate-slide-in" data-observe>
+          <h2 className="text-heading mb-4">Project Complexity vs Deployment Time</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
+              <XAxis dataKey="complexity" name="Complexity" />
+              <YAxis dataKey="deploymentDays" name="Days to Deploy" />
+              <Tooltip cursor={{ strokeDasharray: '3 3' }} />
+              <Scatter name="Projects" data={portfolioData.projectComplexity} fill="#FF6B35" />
+            </ScatterChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Platform Activity Heatmap - Composed Chart */}
+        <div className="col-span-12 md:col-span-6 card-dashboard p-6 animate-slide-in" data-observe>
+          <h2 className="text-heading mb-4">Platform Activity Trend</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <ComposedChart data={portfolioData.platformActivity}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="Vercel" fill="#FF6B35" />
+              <Bar dataKey="Manus" fill="#7C3AED" />
+              <Bar dataKey="Render" fill="#10B981" />
+              <Bar dataKey="Lovable" fill="#EC4899" />
+              <Line type="monotone" dataKey="GitHub Pages" stroke="#1F2937" strokeWidth={2} />
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
 
